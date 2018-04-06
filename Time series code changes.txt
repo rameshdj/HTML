@@ -1,0 +1,105 @@
+dashboard\components\dashboard.component.ts
+------------------------------------------------------------------------------------------
+    1) hasDetailView define for detail view link visble
+    2) goDetailPage function call from detail view click
+
+
+dashboard\components\dashboard.html
+------------------------------------------------------------------------------------------
+    <span class="eqpText"ng-if="tile.hasDetailView"  ng-click="vm.goDetailPage(tile)">Detail View</span>
+
+
+shared\services\layout.services.ts
+------------------------------------------------------------------------------------------
+    public addMore: {
+        showChannel: boolean,
+        cycleCount: number,
+        channels: {
+            name: string,
+            id: string,
+            selected: boolean
+        }[]
+    }
+
+    populateAddMoreEquipmentData(applyGlobalGroup: boolean = true) {
+        debugger;
+        var serialNumberList = applyGlobalGroup ? this.requestServices.request.makeSerialNumberList.split(',') : this.widgetServices.currentWidget.configData.makeSerialNumberList.split(',');
+        this.addMore.equipments = [];
+        this.addMore.previousSelections.equipments.length > 0 ? "" : serialNumberList.length > 0 ? this.addMore.previousSelections.equipments.push(serialNumberList[0]) : "";
+        this.addMore.equipmentCount = !applyGlobalGroup ? serialNumberList.length : 1;
+        for (var i = 0; i < serialNumberList.length; i++) {
+            var equipment = this.addMore.previousSelections.equipments.length > 0 ? this.addMore.previousSelections.equipments[0].split('|')[1] : serialNumberList[0].split('|')[1];
+            this.addMore.equipments.push({ name: serialNumberList[i].split('|')[1], selected: applyGlobalGroup ? equipment == serialNumberList[i].split('|')[1] : true });
+
+        }
+        applyGlobalGroup? this.commonServices.selectedEquipments=this.widgetServices.currentWidget.configData.makeSerialNumberList:"";
+        this.addMore.isMultiSelectionEquip = !applyGlobalGroup;
+    }
+
+    populateAddMoreChannelData() {
+        debugger;
+        //     var channels = this.widgetServices.currentWidget.configData.selectedList;
+        //  console.log(channels)
+        this.addMore.channels = [];
+        var channelGrpList = this.widgetServices.currentWidget.configData.selectedList;
+        this.addMore.channelCount = channelGrpList.length ;
+
+        for (var j = 0; j < channelGrpList.length; j++) {
+            var channel = channelGrpList[j];
+            if (channel['selected']) {
+                this.addMore.channels.push({ name: channel['name'], selected: channel['selected'], id: channel['id'] });
+            }
+
+        }
+        this.commonServices.selectedChannels=this.widgetServices.currentWidget.configData.selectedList;
+
+    }
+
+layout\components\shell\shell.html
+------------------------------------------------------------------------------------------
+    <add-more-channel-equipment 
+        channel-list="vm.layoutServices.addMore.channels" 
+        show-channel="vm.layoutServices.addMore.showChannel"
+        channel-count="vm.layoutServices.addMore.channelCount" >
+    </add-more-channel-equipment>
+
+addMore\components\addMore.component.ts
+------------------------------------------------------------------------------------------
+    constructor() {
+            channelList:'<',
+            showChannel:'<',
+            channelCount:'<',
+    }
+
+    setEquipments() {
+        var equips = [];
+        for (var i = 0; i < this.equipList.length; i++) {
+            if (this.equipList[i].selected)
+                equips.push(this.layoutServices.topbar.show.applicationview ? 
+                this.commonServices.getMakeSerialNumber(this.requestServices.request.makeSerialNumberList)(this.equipList[i].name) : 
+                this.widgetServices.currentWidget && this.getMakeSerialNumber ? this.getMakeSerialNumber(this.equipList[i].name) : this.commonServices.getMakeSerialNumber(this.widgetServices.currentWidget.configData.makeSerialNumberList)(this.equipList[i].name));
+        }
+}
+
+timeSeries\components\timeSeriesSummary\timeSeriesSummary.component.ts
+------------------------------------------------------------------------------------------
+
+timeSeries\components\timeSeriesDetail\timeSeriesDetail.component.ts
+------------------------------------------------------------------------------------------
+    goToDetail = this.$scope.$on('BC_GoToDetailPage', (event, data) => {       
+             this.goToDetailPage();            
+    });
+
+    goToDetailPage() {
+        this.requestServices.setDetailDateRange(this.requestServices.dateRange.startTime, this.requestServices.dateRange.endTime);
+        this.commonServices.currentPage = this.commonServices.pages.timeSeries;
+        this.commonServices.isSummaryView = false;
+        this.$rootRouter.navigate(['TimeSeries']);
+    }
+
+
+
+        if(!applyGlobalGroup){
+            this.commonServices.selectedEquipments=this.widgetServices.currentWidget.widget.internalNavDataList[0];
+            this.widgetServices.currentWidget.widget.internalNavDataList =  this.widgetServices.currentWidget.configData.makeSerialNumberList.spilt(",");  
+    }
